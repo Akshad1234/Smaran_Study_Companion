@@ -28,7 +28,7 @@ export default function LandingPage() {
           <Link href="/auth">
             <Button variant="ghost">Sign In</Button>
           </Link>
-          <Link href="/auth">
+          <Link href="/api">
             <Button className="bg-indigo-600 hover:bg-indigo-700">Try Smaran Free</Button>
           </Link>
         </div>
@@ -57,7 +57,7 @@ export default function LandingPage() {
             transition={{ duration: 0.8, delay: 0.6 }}
             className="flex flex-col sm:flex-row gap-4 justify-center mb-16"
           >
-            <Link href="/auth">
+            <Link href="/api">
               <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 text-lg px-8 py-4">
                 Try Smaran Free
                 <ArrowRight className="ml-2 h-5 w-5" />
