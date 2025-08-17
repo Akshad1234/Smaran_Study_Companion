@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { prisma } from "@/lib/prisma";
+
+// In-memory user storage (for demo purposes)
+const users: { name: string; email: string; password: string }[] = [];
 
 export async function POST(req: Request) {
   try {
@@ -24,9 +26,7 @@ export async function POST(req: Request) {
     }
 
     // Check if user already exists
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-    });
+    const existingUser = users.find((user) => user.email === email);
 
     if (existingUser) {
       console.log("User already exists:", email);
@@ -40,12 +40,10 @@ export async function POST(req: Request) {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create user
-    await prisma.user.create({
-      data: {
-        name,
-        email,
-        password: hashedPassword,
-      },
+    users.push({
+      name,
+      email,
+      password: hashedPassword,
     });
 
     console.log("User created successfully:", email);
