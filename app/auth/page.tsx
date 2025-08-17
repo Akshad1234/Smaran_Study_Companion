@@ -28,7 +28,7 @@ export default function AuthPage() {
     setError("");
 
     try {
-      const res = await fetch(isSignUp ? "/auth/signup" : "/auth/login", {
+      const res = await fetch(isSignUp ? "/api/signup" : "/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password }),
