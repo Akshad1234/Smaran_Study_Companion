@@ -1,0 +1,73 @@
+// Prisma Client Generator
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Database connection
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// =====================
+// User Model
+// =====================
+model User {
+  id        String    @id @default(cuid())
+  name      String    // Full Name
+  email     String    @unique
+  password  String    // Hashed password
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // Relation fields
+  accounts  Account[] 
+  sessions  Session[]
+}
+
+// =====================
+// Account Model (OAuth)
+// =====================
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  // Relation
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+// =====================
+// Session Model
+// =====================
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  // Relation
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// =====================
+// Verification Token (Email Login / Forgot Password)
+// =====================
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
