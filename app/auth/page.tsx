@@ -1,4 +1,5 @@
 "use client"
+import type React from "react"
 
 import { useState } from "react"
 import { motion } from "framer-motion"
@@ -22,51 +23,46 @@ export default function AuthPage() {
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setLoading(true);
-  setError("");
+    e.preventDefault();
+    setLoading(true);
+    setError("");
 
-  try {
-    const res = await fetch(isSignUp ? "/auth/signup" : "/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password }),
-    });
+    try {
+      const res = await fetch(isSignUp ? "/auth/signup" : "/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (!res.ok) {
-      // Display backend error message
-      setError(data.error || "Something went wrong");
+      if (!res.ok) {
+        // Display backend error message
+        setError(data.error || "Something went wrong");
+        setLoading(false);
+        return;
+      }
+
+      if (isSignUp) {
+        // Signup successful → redirect to login
+        router.push("/auth/login");
+      } else {
+        // Login successful → save session and go to onboarding
+        await signIn("credentials", { email, password, callbackUrl: "/onboarding" })
+      }
+    } catch (err) {
+      console.error(err);
+      setError("Failed to connect to server");
+    } finally {
       setLoading(false);
-      return;
     }
+  };
 
-    
-    if (isSignUp) {
-      // Signup successful → redirect to login
-      router.push("/auth/login");
-    } else {
-      // Login successful → save session and go to onboarding
-      await signIn("credentials", { email, password, callbackUrl: "/onboarding" })
-    }
-  } catch (err) {
-    console.error(err);
-    setError("Failed to connect to server");
-  } finally {
-    setLoading(false);
+  const handleOAuthLogin = (provider: "google" | "azure-ad" | "facebook") => {
+    signIn(provider, { callbackUrl: "/onboarding" })
   }
-};
 
-  
-
-
-const handleOAuthLogin = (provider: "google" | "azure-ad" | "facebook") => {
-  signIn(provider, { callbackUrl: "/onboarding" })
-}
-
-
- return (
+  return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50 flex items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -100,8 +96,10 @@ const handleOAuthLogin = (provider: "google" | "azure-ad" | "facebook") => {
             {/* OAuth Buttons */}
             <div className="space-y-3">
               <Button
-    variant="outline"
-    className="w-full bg-transparent flex items-center justify-center space-x-2 border border-indigo-400 hover:border-indigo-600" onClick={() => handleOAuthLogin("google")}>
+                variant="outline"
+                className="w-full bg-transparent flex items-center justify-center space-x-2 border border-indigo-400 hover:border-indigo-600" 
+                onClick={() => handleOAuthLogin("google")}
+              >
                 <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
                   <path
                     fill="#4285F4"
@@ -123,8 +121,10 @@ const handleOAuthLogin = (provider: "google" | "azure-ad" | "facebook") => {
                 Continue with Google
               </Button>
               <Button
-    variant="outline"
-    className="w-full bg-transparent flex items-center justify-center space-x-2 border border-indigo-400 hover:border-indigo-600" onClick={() => handleOAuthLogin("azure-ad")}>
+                variant="outline"
+                className="w-full bg-transparent flex items-center justify-center space-x-2 border border-indigo-400 hover:border-indigo-600" 
+                onClick={() => handleOAuthLogin("azure-ad")}
+              >
                 <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
                   <path fill="#F25022" d="M1 1h10v10H1z" />
                   <path fill="#00A4EF" d="M13 1h10v10H13z" />
@@ -134,8 +134,10 @@ const handleOAuthLogin = (provider: "google" | "azure-ad" | "facebook") => {
                 Continue with Microsoft
               </Button>
               <Button
-    variant="outline"
-    className="w-full bg-transparent flex items-center justify-center space-x-2 border border-indigo-400 hover:border-indigo-600" onClick={() => handleOAuthLogin("facebook")}>
+                variant="outline"
+                className="w-full bg-transparent flex items-center justify-center space-x-2 border border-indigo-400 hover:border-indigo-600" 
+                onClick={() => handleOAuthLogin("facebook")}
+              >
                 <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
                   <path
                     fill="#1877F2"

@@ -21,6 +21,11 @@ const steps = [
     description: "Create your first study subject",
     component: FirstSubjectStep,
   },
+  {
+    title: "Permissions",
+    description: "Enable features for the best experience",
+    component: PermissionsStep,
+  },
 ]
 
 export default function OnboardingPage() {
@@ -196,7 +201,7 @@ function FirstSubjectStep({
   subjectColor: string
   setSubjectColor: (color: string) => void
 }) {
-  const colors = ["#6C5CE7", "#00B894", "#E17055", "#FDCB6E", "#A29BFE"]
+  const colors = ["#6C5CE7", "#00B894", "#E17055", "#FDCB6E", "#6C5CE7", "#A29BFE"]
 
   return (
     <Card className="border-0 shadow-xl bg-white/90 backdrop-blur-sm">
@@ -218,9 +223,9 @@ function FirstSubjectStep({
         <div className="space-y-2">
           <Label>Choose a color</Label>
           <div className="flex space-x-3">
-           {colors.map((color, index) => (
+            {colors.map((color) => (
               <button
-                key={`${color}-${index}`}
+                key={color}
                 onClick={() => setSubjectColor(color)}
                 className={`w-8 h-8 rounded-full border-2 transition-all ${
                   subjectColor === color ? "border-slate-400 scale-110" : "border-slate-200"
@@ -239,4 +244,42 @@ function FirstSubjectStep({
   )
 }
 
+function PermissionsStep() {
+  return (
+    <Card className="border-0 shadow-xl bg-white/90 backdrop-blur-sm">
+      <CardHeader>
+        <CardTitle>Enable key features</CardTitle>
+        <CardDescription>These permissions help provide the best study experience</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="space-y-4">
+          <div className="flex items-start space-x-4 p-4 rounded-lg border">
+            <Mic className="h-6 w-6 text-indigo-600 mt-1" />
+            <div className="flex-1">
+              <h3 className="font-medium text-slate-900">Microphone Access</h3>
+              <p className="text-sm text-slate-600 mt-1">For voice notes and interactive study features (optional)</p>
+            </div>
+            <Button variant="outline" size="sm">
+              Enable
+            </Button>
+          </div>
 
+          <div className="flex items-start space-x-4 p-4 rounded-lg border">
+            <Bell className="h-6 w-6 text-indigo-600 mt-1" />
+            <div className="flex-1">
+              <h3 className="font-medium text-slate-900">Notifications</h3>
+              <p className="text-sm text-slate-600 mt-1">Get notified when your study materials are ready</p>
+            </div>
+            <Button variant="outline" size="sm">
+              Enable
+            </Button>
+          </div>
+        </div>
+
+        <div className="text-sm text-slate-500 text-center">
+          You can change these settings anytime in your account preferences
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
