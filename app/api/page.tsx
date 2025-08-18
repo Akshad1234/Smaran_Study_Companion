@@ -45,7 +45,7 @@ export default function AuthPage() {
 
       if (isSignUp) {
         // Signup successful → redirect to login
-        router.push("/auth/login");
+        router.push("/api/login");
       } else {
         // Login successful → save session and go to onboarding
         await signIn("credentials", { email, password, callbackUrl: "/onboarding" })
