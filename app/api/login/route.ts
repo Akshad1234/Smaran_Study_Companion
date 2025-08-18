@@ -39,7 +39,7 @@ export async function POST(req: Request) {
     );
 
     // ✅ Redirect to /api if login successful
-    const response = NextResponse.redirect(new URL("/api", req.url));
+    const response = NextResponse.redirect(new URL("/onbording", req.url));
 
     // Save token in cookie
     response.cookies.set("token", token, {
@@ -52,6 +52,6 @@ export async function POST(req: Request) {
     return response;
   } catch (error) {
     // ❌ On error → redirect to login
-    return NextResponse.redirect(new URL("/login", req.url));
+    return NextResponse.redirect(new URL("/", req.url));
   }
 }
