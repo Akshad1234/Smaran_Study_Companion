@@ -39,7 +39,7 @@ export async function POST(req: Request) {
     );
 
     // ✅ Redirect to /api if login successful
-    const response = NextResponse.redirect(new URL("/onboarding", req.url));
+    const response = NextResponse.redirect(new URL("/onbo", req.url));
 
     // Save token in cookie
     response.cookies.set("token", token, {
