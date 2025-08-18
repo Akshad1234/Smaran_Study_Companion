@@ -57,15 +57,18 @@ export async function POST(req: Request) {
       { expiresIn: "1h" }
     );
 
-    // Return user info + token
-    return NextResponse.json(
-      {
-        message: "Login successful",
-        user: { name: user.name, email: user.email },
-        token,
-      },
-      { status: 200 }
-    );
+    // ✅ Redirect to dashboard (or login success page)
+    const response = NextResponse.redirect(new URL("/api", req.url));
+
+    // Optionally set token in cookie
+    response.cookies.set("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: 60 * 60, // 1 hour
+    });
+
+    return response;
   } catch (error) {
     console.error("Login error:", error);
     return NextResponse.json(
