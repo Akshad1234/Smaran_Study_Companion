@@ -26,10 +26,33 @@ export default function LoginPage() {
   }
 
   return (
-    <form onSubmit={handleLogin}>
-      <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" />
-      <input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" type="password" />
-      <button type="submit">Login</button>
-    </form>
+    <div className="flex items-center justify-center min-h-screen bg-gray-50">
+      <div className="w-full max-w-sm p-6 bg-white border border-blue-400 rounded-xl shadow-sm">
+        <h2 className="text-xl font-semibold text-center text-blue-600 mb-6">
+          Login
+        </h2>
+        <form onSubmit={handleLogin} className="space-y-4">
+          <input
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Email"
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+          <input
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Password"
+            type="password"
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+          <button
+            type="submit"
+            className="w-full py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md transition"
+          >
+            Login
+          </button>
+        </form>
+      </div>
+    </div>
   )
 }

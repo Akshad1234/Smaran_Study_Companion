@@ -1,11 +1,15 @@
+// =====================
 // Prisma Client Generator
+// =====================
 generator client {
   provider = "prisma-client-js"
 }
 
-// Database connection
+// =====================
+// Database Connection
+// =====================
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql" // ✅ use Postgres (Supabase ready)
   url      = env("DATABASE_URL")
 }
 
@@ -14,9 +18,11 @@ datasource db {
 // =====================
 model User {
   id        String    @id @default(cuid())
-  name      String    // Full Name
+  name      String?
   email     String    @unique
-  password  String    // Hashed password
+  password  String?   // ✅ null allowed if OAuth
+  image     String?   // profile image (for OAuth / profile)
+  role      String    @default("user") // future use: admin, etc.
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
@@ -46,6 +52,7 @@ model Account {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+  @@index([userId])
 }
 
 // =====================
@@ -59,10 +66,12 @@ model Session {
 
   // Relation
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 // =====================
-// Verification Token (Email Login / Forgot Password)
+// Verification Token
 // =====================
 model VerificationToken {
   identifier String
