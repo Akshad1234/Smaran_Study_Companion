@@ -2,12 +2,20 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-// In-memory user storage (must match signup)
+// In-memory user storage (for demo; use DB in production)
 const users: { name: string; email: string; password: string }[] = [];
 
-// Secret key for JWT (store in .env in production)
+// Secret key for JWT (store securely in .env)
 const JWT_SECRET = process.env.JWT_SECRET || "supersecretkey";
 
+// ✅ Handle GET requests (browser test)
+export async function GET() {
+  return NextResponse.json({
+    message: "Login API is working. Use POST with { email, password } to log in.",
+  });
+}
+
+// ✅ Handle POST requests (actual login)
 export async function POST(req: Request) {
   try {
     const { email, password } = await req.json();
