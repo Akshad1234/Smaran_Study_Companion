@@ -25,10 +25,10 @@ export default function LandingPage() {
           <SmaranLogo animated={isLogoAnimated} />
         </div>
         <div className="flex items-center space-x-4">
-          <Link href="/auth">
+          <Link href="/onboarding">
             <Button variant="ghost">Sign In</Button>
           </Link>
-          <Link href="/api">
+          <Link href="/onboarding">
             <Button className="bg-indigo-600 hover:bg-indigo-700">Try Smaran Free</Button>
           </Link>
         </div>
