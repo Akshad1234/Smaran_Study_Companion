@@ -5,19 +5,23 @@ import aiofiles
 import google.generativeai as genai
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 from pydantic import BaseModel
 from PyPDF2 import PdfReader
 import docx
 import pytesseract
 from PIL import Image
 from dotenv import load_dotenv
+import requests
 
 # Load env variables
 load_dotenv()
 
 # Gemini setup
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+
+ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
+ELEVENLABS_VOICE_ID = "pNInz6obpgDQGcFmaJgB"  # Rachel voice, you can change
 
 # Path to Tesseract (update if needed)
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
@@ -37,7 +41,13 @@ app.add_middleware(
 # -------- File Text Extractors -------- #
 def extract_text_from_pdf(file_path):
     reader = PdfReader(file_path)
-    return " ".join([page.extract_text() or "" for page in reader.pages])
+    texts = []
+    for page in reader.pages:
+        raw = page.extract_text() or ""
+        safe = raw.encode("utf-8", errors="ignore").decode("utf-8", errors="ignore")
+        texts.append(safe)
+    return " ".join(texts)
+
 
 def extract_text_from_docx(file_path):
     doc = docx.Document(file_path)
@@ -87,7 +97,6 @@ async def upload_file(file: UploadFile = File(...)):
         safe_text = extracted_text.encode("utf-8", "replace").decode("utf-8")
         return JSONResponse(content={"text": extracted_text})
 
-
     except Exception as e:
         print("❌ Error:", str(e))
         raise HTTPException(status_code=500, detail=str(e))
@@ -107,6 +116,13 @@ async def preprocess_text(payload: TextPayload):
 You are an exam-focused AI tutor helping students revise.
 Carefully read the provided notes line by line.
 
+IMPORTANT: Use ONLY the notes provided below. 
+DO NOT add content not present in the notes. 
+Focus entirely on the concepts contained in the provided notes.
+
+You are an exam-focused AI tutor helping students revise.
+Carefully read the provided notes line by line.
+
 Your task:
 1. Identify ONLY exam-relevant content:
    - Core concepts
@@ -116,28 +132,29 @@ Your task:
 2. Ignore:
    - Filler, long stories, or low-importance details
    - Redundant repetition
-3. Transform important content into a **clear lecture script** that feels like a teacher explaining to students before an exam.
+3. Transform important content into a clear lecture script that feels like a teacher explaining to students before an exam.
 
-VERY IMPORTANT: The lecture script should be long enough so the total podcast duration is **20 to 30 minutes**. 
-Expand explanations with examples, comparisons, and short clarifications when needed to reach this duration, while still staying exam-focused.
+VERY IMPORTANT: The lecture script should be long enough so the total podcast duration is 20 to 30 minutes. 
+Expand explanations with examples, comparisons, and short clarifications when needed to reach this duration.
 
 Output format (STRICT JSON only, no extra text outside JSON):
 [
-  {
+  {{
     "title": "Topic Name",
     "content": "Lecture-style explanation of exam-relevant points, written in a natural spoken style.",
     "importance": "high" | "medium",
     "duration": <estimated time in seconds to read aloud>
-  }
+  }}
 ]
 
 Guidelines:
 - Split into multiple sections (one section per concept/topic).
-- Each section must feel like a **mini lecture** (not just bullet points).
+- Each section must feel like a mini lecture (not just bullet points).
 - Keep "content" natural, like spoken teaching (e.g., “Now let’s look at…”).
-- Ensure enough depth/detail to make the **whole lecture 20–30 minutes** when read aloud.
+- Ensure enough depth/detail to make the whole lecture 20–30 minutes when read aloud.
 - Estimate duration realistically (average ~120 words ≈ 60 seconds).
 - Distribute time across sections (some topics may need more, some less).
+
         """
 
         model = genai.GenerativeModel("gemini-1.5-flash")
@@ -154,10 +171,53 @@ Guidelines:
             print("❌ JSON Parse Error:", response.text[:500])
             raise HTTPException(status_code=500, detail="Invalid JSON from Gemini")
 
-        return JSONResponse(content={"status": "success", "segments": segments}, ensure_ascii=False)
+        return JSONResponse(content={"status": "success", "segments": segments})
+
 
     except Exception as e:
         print("❌ AI Error:", str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+
+# -------- API Route: Convert to Audio with ElevenLabs -------- #
+class AudioPayload(BaseModel):
+    text: str
+
+@app.post("/generate-audio/")
+async def generate_audio(payload: AudioPayload):
+    try:
+        if not ELEVENLABS_API_KEY:
+            raise HTTPException(status_code=500, detail="ElevenLabs API key not set")
+
+        url = f"https://api.elevenlabs.io/v1/text-to-speech/{ELEVENLABS_VOICE_ID}/stream"
+
+        headers = {
+            "Accept": "audio/mpeg",
+            "xi-api-key": ELEVENLABS_API_KEY,
+        }
+
+        body = {
+            "text": payload.text,
+            "voice_settings": {
+                "stability": 0.5,
+                "similarity_boost": 0.7
+            }
+        }
+
+        response = requests.post(url, headers=headers, json=body)
+
+        if response.status_code != 200:
+            print("❌ ElevenLabs Error:", response.text)
+            raise HTTPException(status_code=500, detail="Failed to generate audio")
+
+        # Save file
+        output_path = os.path.join(tempfile.gettempdir(), "output.mp3")
+        with open(output_path, "wb") as f:
+            f.write(response.content)
+
+        return FileResponse(output_path, media_type="audio/mpeg", filename="output.mp3")
+
+    except Exception as e:
+        print("❌ Audio Error:", str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
 
