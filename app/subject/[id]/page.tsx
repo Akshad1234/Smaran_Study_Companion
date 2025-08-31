@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect, useCallback } from "react"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
@@ -65,7 +64,7 @@ export default function SubjectPage() {
   const [duration, setDuration] = useState(180) // Mock 3 minutes
   const [currentSegment, setCurrentSegment] = useState(0)
 
-  // Mock audio segments
+  // Mock audio segments (for demo)
   const audioSegments: AudioSegment[] = [
     { id: "1", title: "Introduction to Calculus", startTime: 0, duration: 45, importance: "high" },
     { id: "2", title: "Derivatives and Limits", startTime: 45, duration: 60, importance: "high" },
@@ -74,7 +73,6 @@ export default function SubjectPage() {
   ]
 
   useEffect(() => {
-    // Load subject data
     const subjectsData = localStorage.getItem("smaran_subjects")
     if (subjectsData) {
       const subjects = JSON.parse(subjectsData)
@@ -86,7 +84,6 @@ export default function SubjectPage() {
       }
     }
 
-    // Load files for this subject
     const filesData = localStorage.getItem(`smaran_files_${params.id}`)
     if (filesData) {
       setFiles(JSON.parse(filesData))
@@ -106,12 +103,12 @@ export default function SubjectPage() {
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     setIsDragOver(false)
-
     const droppedFiles = Array.from(e.dataTransfer.files)
     handleFileUpload(droppedFiles)
-  }, [])
+  }, [files])
 
-  const handleFileUpload = (fileList: File[]) => {
+  // ⬇️ Real upload handler (FastAPI)
+  const handleFileUpload = async (fileList: File[]) => {
     const newFiles: UploadedFile[] = fileList.map((file) => ({
       id: Math.random().toString(36).substr(2, 9),
       name: file.name,
@@ -126,29 +123,50 @@ export default function SubjectPage() {
     setFiles(updatedFiles)
     localStorage.setItem(`smaran_files_${params.id}`, JSON.stringify(updatedFiles))
 
-    // Simulate upload and processing
-    newFiles.forEach((file, index) => {
-      setTimeout(() => {
-        // Update to processing
-        setFiles((prev) =>
-          prev.map((f) => (f.id === file.id ? { ...f, status: "processing", processingProgress: 0 } : f)),
-        )
+    for (const file of fileList) {
+      const fileId = Math.random().toString(36).substr(2, 9)
+      setFiles((prev) => [
+        ...prev,
+        {
+          id: fileId,
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          status: "uploading",
+          uploadedAt: new Date().toISOString(),
+          processingProgress: 0,
+        },
+      ])
 
-        // Simulate processing progress
-        let progress = 0
-        const progressInterval = setInterval(() => {
-          progress += Math.random() * 20
-          if (progress >= 100) {
-            clearInterval(progressInterval)
-            setFiles((prev) =>
-              prev.map((f) => (f.id === file.id ? { ...f, status: "ready", processingProgress: 100 } : f)),
-            )
-          } else {
-            setFiles((prev) => prev.map((f) => (f.id === file.id ? { ...f, processingProgress: progress } : f)))
-          }
-        }, 500)
-      }, index * 1000)
-    })
+      const formData = new FormData()
+      formData.append("file", file)
+
+      try {
+        // Call FastAPI backend
+        const res = await fetch("http://127.0.0.1:8000/upload/", {
+          method: "POST",
+          body: formData,
+        })
+
+        if (!res.ok) throw new Error("Upload failed")
+
+        await res.json()
+
+        // Update status to ready
+        setFiles((prev) =>
+          prev.map((f) =>
+            f.name === file.name ? { ...f, status: "ready", processingProgress: 100 } : f,
+          ),
+        )
+      } catch (err) {
+        console.error(err)
+        setFiles((prev) =>
+          prev.map((f) =>
+            f.name === file.name ? { ...f, status: "error" } : f,
+          ),
+        )
+      }
+    }
   }
 
   const getFileIcon = (type: string) => {

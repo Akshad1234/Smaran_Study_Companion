@@ -164,7 +164,6 @@ export default function DashboardPage() {
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-slate-900 mb-2">Welcome {user.name}!</h1>
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">Welcome back, {user.name}!</h1>
           <p className="text-slate-600">Ready to turn your study materials into engaging audio content?</p>
         </div>
 
@@ -202,7 +201,6 @@ export default function DashboardPage() {
                 <div>
                   <p className="text-sm font-medium text-slate-600">Study Time</p>
                   <p className="text-2xl font-bold text-slate-900">0.0h</p>
-                  <p className="text-2xl font-bold text-slate-900">2.5h</p>
                 </div>
                 <Clock className="h-8 w-8 text-indigo-600" />
               </div>
